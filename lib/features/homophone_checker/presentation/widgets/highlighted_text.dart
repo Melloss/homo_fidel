@@ -14,12 +14,20 @@ import '../../domain/entities/flagged_letter.dart';
 class HighlightedText extends StatefulWidget {
   final String text;
   final List<FlaggedLetter> flags;
+
+  /// Indices of letters a Mode B suggestion would change: rendered in the
+  /// strong gold weight instead of the quiet wheat one (spec §14 — the
+  /// weight difference between "you chose here" and "probably wrong" is the
+  /// whole mitigation for highlight noise).
+  final Set<int> likelyErrorIndices;
+
   final ValueChanged<FlaggedLetter> onLetterTap;
 
   const HighlightedText({
     super.key,
     required this.text,
     required this.flags,
+    this.likelyErrorIndices = const {},
     required this.onLetterTap,
   });
 
@@ -59,11 +67,19 @@ class _HighlightedTextState extends State<HighlightedText> {
       final recognizer = TapGestureRecognizer()
         ..onTap = () => widget.onLetterTap(flag);
       _recognizers.add(recognizer);
+      final likely = widget.likelyErrorIndices.contains(flag.index);
       spans.add(
         TextSpan(
           text: flag.character,
           recognizer: recognizer,
-          style: TextStyle(backgroundColor: highlight),
+          // Full-strength gold carries ink text (8.31:1 vs navy, better vs
+          // ink) so the likely-error letters stay readable in dark mode too.
+          style: likely
+              ? const TextStyle(
+                  backgroundColor: AppColors.likelyError,
+                  color: AppColors.ink,
+                )
+              : TextStyle(backgroundColor: highlight),
         ),
       );
       cursor = flag.index + flag.character.length;

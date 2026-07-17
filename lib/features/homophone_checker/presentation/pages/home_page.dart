@@ -33,7 +33,13 @@ class _HomePageState extends State<HomePage> {
 
   Future<void> _onLetterTap(FlaggedLetter letter) async {
     final bloc = context.read<CheckerBloc>();
-    final sibling = await SwapSheet.show(context, letter);
+    final state = bloc.state;
+    final sibling = await SwapSheet.show(
+      context,
+      letter,
+      suggestion:
+          state is CheckerResult ? state.suggestionAt(letter.index) : null,
+    );
     if (sibling != null) {
       bloc.add(SiblingSwapped(letter: letter, sibling: sibling));
     }
@@ -109,17 +115,24 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
+  String _summaryLine(CheckerResult state) {
+    if (state.flags.isEmpty) return 'No choice points found.';
+    final points = '${state.flags.length} choice point'
+        '${state.flags.length == 1 ? '' : 's'}';
+    final likely = state.suggestions.isEmpty
+        ? ''
+        : ' · ${state.suggestions.length} likely slip'
+            '${state.suggestions.length == 1 ? '' : 's'} in gold';
+    return '$points$likely — tap a highlighted letter to swap it';
+  }
+
   Widget _buildResultView(BuildContext context, CheckerResult state) {
     final theme = Theme.of(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Text(
-          state.flags.isEmpty
-              ? 'No choice points found.'
-              : '${state.flags.length} choice point'
-                  '${state.flags.length == 1 ? '' : 's'} — '
-                  'tap a highlighted letter to swap it',
+          _summaryLine(state),
           style: theme.textTheme.bodyMedium
               ?.copyWith(color: theme.colorScheme.onSurfaceVariant),
         ),
@@ -129,6 +142,7 @@ class _HomePageState extends State<HomePage> {
             child: HighlightedText(
               text: state.text,
               flags: state.flags,
+              likelyErrorIndices: state.likelyErrorIndices,
               onLetterTap: _onLetterTap,
             ),
           ),

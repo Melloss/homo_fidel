@@ -12,11 +12,14 @@ Ordinary spell checkers miss this. They catch **non-words**, but a homophone sli
 
 **The central interaction works end-to-end (Mode A):** paste or type Amharic → **አረጋግጥ** (Check) → every homophone choice point highlighted → tap a letter → pick a same-sound sibling from the bottom sheet → the text is swapped and re-scanned → **ቅዳ** (Copy) puts the corrected text on the clipboard. A **ናሙና** button pre-fills a sample sentence covering all four families.
 
-The engine is pure Dart, fully unit-tested, and the whole flow is covered by bloc and widget tests; the release web build has been driven end-to-end in a real browser. Mode B (word-frequency "likely error" weighting) is deliberately not attempted — see [NOTES.md](NOTES.md) for the honest breakdown and screenshots in [docs/screenshots/](docs/screenshots/).
+**Mode B is in too:** words whose same-sound variant overwhelmingly dominates a bundled news-corpus frequency list get the strong gold *likely slip* highlight, and the swap sheet stars the corpus's pick alongside the raw counts (e.g. `በጸሎት ×0 · በፀሎት ×102`). Evidence, not verdicts — and if the frequency asset ever fails to load, the app silently runs as Mode A.
+
+The engine is pure Dart, fully unit-tested, and the whole flow is covered by bloc and widget tests; the release web build has been driven end-to-end in a real browser. See [NOTES.md](NOTES.md) for the honest breakdown (including Mode B's stated limitations) and screenshots in [docs/screenshots/](docs/screenshots/).
 
 | | | |
 |---|---|---|
 | ![Checked text with highlights](docs/screenshots/2-checked-highlights.png) | ![Swap sheet](docs/screenshots/3-swap-sheet.png) | ![After the swap](docs/screenshots/4-after-swap.png) |
+| ![Mode B likely slips in gold](docs/screenshots/5-modeb-likely-errors.png) | ![Evidence in the swap sheet](docs/screenshots/6-modeb-evidence-sheet.png) | ![After applying the suggestion](docs/screenshots/7-modeb-after-swap.png) |
 
 ## Requirements
 
@@ -77,6 +80,10 @@ For example ሳ (`U+1233`) is in the S family at order 3, so its sibling is `0x1
 Everyday words where the choice matters: ሰላም (peace/hello), አበበ (a name), ጸሎት (prayer), ፀሐይ (sun), ዐይን (eye).
 
 A family covers exactly **seven** orders (`base` … `base + 6`). The eighth slot is a real but *different* letter — the labiovelar variant, e.g. `0x1237` ሷ SWA — so it must not be flagged.
+
+### Mode B: likely-slip weighting
+
+On top of the deterministic highlighting, each word containing a choice point is checked against `assets/word_freq.json` — 79k word frequencies distilled from ~10.3M tokens of professionally edited Amharic news ([Azime & Mohammed 2021](https://arxiv.org/abs/2103.05639), CC BY 4.0, attribution in the asset's meta block; regenerate with `python3 tool/build_word_freq.py`). A suggestion fires only on lopsided evidence: the same-sound variant needs at least 10 corpus occurrences **and** 20× the typed spelling's count. The corpus is descriptive of newsroom usage, so the UI shows the counts and lets the writer decide.
 
 ## Architecture
 
