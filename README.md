@@ -81,6 +81,7 @@ lib/
 ├── main.dart
 ├── injection_container.dart          # get_it service locator
 ├── core/
+│   ├── theme/                        # app_colors.dart, app_theme.dart
 │   ├── error/                        # failure types
 │   └── usecases/                     # base UseCase contract
 └── features/homophone_checker/
@@ -101,6 +102,29 @@ lib/
 Dependencies point inward: `presentation → domain ← data`. The **domain layer is pure Dart with no Flutter imports**, so the detection logic can be unit-tested without a widget harness and reused later (for example, inside a keyboard/IME).
 
 > Note: spec §7/§8 specify Provider/`ChangeNotifier` and call BLoC "overkill at this size." This repo deliberately diverges — see [NOTES.md](NOTES.md).
+
+## Design
+
+The palette is sampled from the concept spec rather than invented: navy `#14213D` is the document's header block and gold `#E4B363` its accent text — the same pairing it already uses for fidäl on the cover.
+
+| Token | Colour | Role |
+|---|---|---|
+| `navy` | `#14213D` | Primary. App bar, icon plate |
+| `gold` | `#E4B363` | Secondary. Accent, likely-error highlight |
+| `surface` | `#F5F6F9` | Light containers |
+| `ink` | `#1F2430` | Body text; dark-mode surface |
+| `muted` | `#6B7280` | Labels, interactive borders |
+
+Gold reads **8.31:1** on navy but only **1.92:1** on white, so it is a background or dark-surface accent and never a foreground colour on a light surface. Every pairing in `AppColors` is contrast-checked; the two highlight weights implement the spec §14 mitigation for Mode A noise — a quiet wheat tint (`choicePoint`) for "you chose here" against full-strength gold (`likelyError`) for "this is probably wrong."
+
+The app icon is ፊ (`U+134A`, the first letter of ፊደል) in gold on a navy plate. Regenerate with:
+
+```bash
+python3 tool/generate_icon.py     # redraw assets/icon/ from the font
+dart run flutter_launcher_icons   # stamp Android + web
+```
+
+Ge'ez text is rendered in **Noto Sans Ethiopic**, bundled rather than system-resolved — the default font has no Ethiopic glyphs and web cannot rely on the host having one. SIL OFL 1.1; the licence ships in `assets/fonts/OFL.txt` and is registered into the app's Licenses page.
 
 ## Scope
 
