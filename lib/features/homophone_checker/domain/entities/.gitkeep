@@ -1,0 +1,2 @@
+# homophone_family.dart  — a family: sound + base code points
+# flagged_letter.dart    — a choice point: index, char, family, order, siblings

@@ -1,0 +1,117 @@
+# HomoFidel
+
+An Amharic homophone checker for the Ge'ez script.
+
+Amharic is written in the Ge'ez script (ፊደል / *fidäl*), where several **different** base letters are pronounced **identically**. When you write, you constantly choose between letters that sound the same but are spelled differently — and it's easy to pick the wrong one. Because the wrong choice is still a real, valid letter, the result is a correctly-formed word that is simply the wrong spelling.
+
+Ordinary spell checkers miss this. They catch **non-words**, but a homophone slip is a real-word → real-word substitution that a dictionary happily accepts. HomoFidel targets only that one error class.
+
+**Paste Amharic text → see the homophone-risk letters highlighted → tap any of them to view and apply the same-sound alternatives.** Fully offline, on-device. No backend, no network, no ML.
+
+## Status
+
+Project scaffold. The app shell boots and the architecture is laid out; the detection engine and UI are not implemented yet. See [NOTES.md](NOTES.md) for an honest breakdown.
+
+## Requirements
+
+Flutter (stable). Developed against Flutter 3.35.7 / Dart 3.9.2.
+
+## Run
+
+The web build needs no device or emulator, so it runs anywhere Flutter is installed — including a plain Linux box.
+
+```bash
+flutter pub get
+
+# Web — no device needed
+flutter run -d chrome
+
+# Android (device or emulator attached)
+flutter run -d android
+```
+
+## Test
+
+```bash
+flutter test                                  # everything
+flutter test test/widget_test.dart            # one file
+flutter test --plain-name 'app shell boots'   # one test by name
+```
+
+## Build
+
+```bash
+# Shareable Android APK → build/app/outputs/flutter-apk/app-release.apk
+flutter build apk --release
+
+# Web bundle → build/web/
+flutter build web --release
+```
+
+## How it works
+
+Every Ge'ez letter is a single Unicode code point in a highly regular block. Each base letter has seven vowel orders occupying **seven consecutive code points**, so the whole mechanic is arithmetic:
+
+- `order = codePoint - base`
+- a same-sound sibling is `otherBase + order`
+
+Given a character, the engine checks whether it sits inside one of the homophone families below; if it does, it's a "choice point." Swapping to a same-sound sibling keeps the vowel order and changes the base. No dictionary or network required.
+
+For example ሳ (`U+1233`) is in the S family at order 3, so its sibling is `0x1220 + 3` = ሣ (`U+1223`).
+
+### The four homophone families
+
+| Family | Sound | Base letters |
+|---|---|---|
+| H | /h/ | ሀ `U+1200` · ሐ `U+1210` · ኀ `U+1280` |
+| S | /s/ | ሰ `U+1230` · ሠ `U+1220` |
+| Ts' | /ts'/ | ጸ `U+1338` · ፀ `U+1340` |
+| A | /ʔ ~ a/ | አ `U+12A0` · ዐ `U+12D0` |
+
+Everyday words where the choice matters: ሰላም (peace/hello), አበበ (a name), ጸሎት (prayer), ፀሐይ (sun), ዐይን (eye).
+
+A family covers exactly **seven** orders (`base` … `base + 6`). The eighth slot is a real but *different* letter — the labiovelar variant, e.g. `0x1237` ሷ SWA — so it must not be flagged.
+
+## Architecture
+
+Clean architecture, one feature slice, with `flutter_bloc` driving the presentation layer.
+
+```
+lib/
+├── main.dart
+├── injection_container.dart          # get_it service locator
+├── core/
+│   ├── error/                        # failure types
+│   └── usecases/                     # base UseCase contract
+└── features/homophone_checker/
+    ├── domain/                       # pure Dart — no Flutter imports
+    │   ├── entities/                 # HomophoneFamily, FlaggedLetter
+    │   ├── repositories/             # abstract contract
+    │   └── usecases/                 # ScanText, SwapLetter
+    ├── data/
+    │   ├── datasources/              # family tables; Mode B word list
+    │   ├── models/                   # DTOs / JSON mapping
+    │   └── repositories/             # contract implementation
+    └── presentation/
+        ├── bloc/                     # CheckerBloc + events + states
+        ├── pages/                    # home_page.dart — the one screen
+        └── widgets/                  # highlighted_text.dart, swap_sheet.dart
+```
+
+Dependencies point inward: `presentation → domain ← data`. The **domain layer is pure Dart with no Flutter imports**, so the detection logic can be unit-tested without a widget harness and reused later (for example, inside a keyboard/IME).
+
+> Note: spec §7/§8 specify Provider/`ChangeNotifier` and call BLoC "overkill at this size." This repo deliberately diverges — see [NOTES.md](NOTES.md).
+
+## Scope
+
+A deliberately tight proof of concept, not a production app.
+
+**In scope:** paste/type Amharic; detect characters in a homophone family; highlight them as choice points; tap a letter → see same-sound siblings → tap to swap; copy the result; works fully offline.
+
+**Out of scope:** a full Amharic dictionary or grammar checker; one-click "fix everything" autocorrect; system-wide keyboard/IME; accounts, cloud sync, analytics; iOS release and Play Store publishing.
+
+HomoFidel flags the choice points — it does **not** claim to be the authority on which spelling is correct. Without a dictionary it can only offer the options; it's an assist, not an authority.
+
+## Docs
+
+Full concept & technical specification: [docs/Homofidel_Concept_Spec.pdf](docs/Homofidel_Concept_Spec.pdf)

@@ -1,0 +1,38 @@
+name: homofidel
+description: "An Amharic homophone checker for the Ge'ez script."
+publish_to: 'none'
+version: 0.1.0+1
+
+environment:
+  sdk: ^3.9.2
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # Presentation state. Note: this diverges from spec §7/§8, which specify
+  # Provider/ChangeNotifier and call BLoC "overkill at this size".
+  flutter_bloc: ^9.1.1
+  # Value equality for entities, events and states.
+  equatable: ^2.1.0
+  # Service locator — wires data/domain impls to the presentation layer.
+  get_it: ^9.2.1
+  # Flutter default. Kept because MaterialApp pulls in Cupertino widgets that
+  # reference this font family; dropping it warns on every build.
+  cupertino_icons: ^1.0.8
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^5.0.0
+  # Fakes for repository/data-source contracts in unit tests.
+  bloc_test: ^10.0.0
+  mocktail: ^1.0.4
+
+flutter:
+  uses-material-design: true
+
+  # Mode B (stretch goal) only. Declare once assets/word_freq.json exists —
+  # a declared-but-missing asset fails the build, so it stays commented out.
+  # assets:
+  #   - assets/word_freq.json
