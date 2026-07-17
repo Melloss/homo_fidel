@@ -102,6 +102,27 @@ Spec Appendix B proposes reusing the author's own `amharic_homophones` package a
 
 Hand-writing the four family tables is ~10 lines of constants (they're all above, verified). Prefer that over the dependency unless the package changes.
 
+## Design tokens and assets
+
+The palette in `lib/core/theme/app_colors.dart` is **sampled from the spec PDF**, not invented — navy `#14213D` is its header block, gold `#E4B363` its accent text. Don't re-guess these; if they ever need re-deriving, render the PDF and sample it.
+
+**Gold is 8.31:1 on navy but 1.92:1 on white.** It is a background or dark-surface accent and must never carry text on a light surface. `AppTheme` writes both `ColorScheme`s explicitly rather than using `ColorScheme.fromSeed`, because seeding re-derives the roles through M3 tonal palettes and shifts the brand colours off their sampled values.
+
+`AppColors.choicePoint` (quiet wheat) vs `AppColors.likelyError` (full gold) is the spec §14 mitigation for "Mode A looks busy" — the weight difference is the whole point, so keep them distinct.
+
+**Noto Sans Ethiopic is bundled** (`assets/fonts/`, SIL OFL 1.1) and set as the app-wide `fontFamily`. This is not optional polish: the default font has no Ethiopic glyphs and web can't rely on a host font, so an unbundled build risks tofu — for an app whose entire job is displaying fidäl. `main.dart` registers `OFL.txt` into `LicenseRegistry` because Flutter auto-collects licences from packages but not from bundled assets.
+
+### Icons
+
+Source art is generated, not hand-drawn — `python3 tool/generate_icon.py`, then `dart run flutter_launcher_icons`. `assets/icon/` is build-time only and deliberately not declared under `flutter: assets:`.
+
+**The adaptive-icon trap:** `flutter_launcher_icons` wraps the foreground in a 16%-per-side `<inset>`, so the drawable covers only 68% of the canvas. Sizing the glyph at its intended final fraction compounds to a tiny speck (27% against a 66% safe zone). The generator pre-compensates at `FOREGROUND_FIT = 0.82` → ~56% final. If you change the icon, verify by compositing the **generated** drawable with the inset applied and masking to a circle — not by eyeballing `icon.png`, which has no inset.
+
+### Environment gotchas
+
+- `dart` on PATH is 3.5.3 and too old for this project (needs ^3.9.2). Use Flutter's bundled SDK: `/home/melloss/snap/flutter/common/flutter/bin/cache/dart-sdk/bin/dart`.
+- Headless Chrome on this machine reports `prefers-color-scheme: dark`, so `ThemeMode.system` renders dark by default in screenshots. Force with `--blink-settings=preferredColorScheme=1` (light) or `=0` (dark).
+
 ## The one genuinely tricky Flutter bit
 
 You cannot easily make individual characters inside a live `TextField` both colored and tappable while editing. The prototype's pattern:
@@ -133,12 +154,17 @@ Spec §9 describes a flat `engine/state/ui` layout; the repo uses the clean-arch
 lib/
 ├── main.dart                         # boots DI, then HomofidelApp
 ├── injection_container.dart          # get_it — registration slots stubbed
+├── core/theme/                       # app_colors.dart (sampled), app_theme.dart
 ├── core/{error,usecases}/
 └── features/homophone_checker/
     ├── domain/{entities,repositories,usecases}/     # pure Dart
     ├── data/{datasources,models,repositories}/
     └── presentation/{bloc,pages,widgets}/
-assets/word_freq.json                 # Mode B only (asset entry commented out
+assets/
+├── fonts/                            # Noto Sans Ethiopic (bundled) + OFL.txt
+├── icon/                             # build-time icon sources (not bundled)
+└── word_freq.json                    # Mode B only (asset entry commented out
                                       # in pubspec until the file exists)
+tool/generate_icon.py                 # regenerates assets/icon/
 test/features/homophone_checker/…     # mirrors lib/
 ```

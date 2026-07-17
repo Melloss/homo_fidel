@@ -5,8 +5,14 @@ Honest status of the prototype. Updated as work lands — no pretending unfinish
 ## What works
 
 - Project scaffold: Flutter app, package `com.melloss.homofidel`, app name **HomoFidel**.
-- Targets Android + web. `flutter run -d chrome` boots an empty shell (no device needed).
+- Targets Android + web. `flutter run -d chrome` boots a shell (no device needed).
 - Clean-architecture layout in place, dependencies wired, `get_it` container stubbed.
+- Brand palette sampled from the spec PDF, with every pairing contrast-checked;
+  light + dark themes applied and verified rendering in a real browser.
+- App icon (gold ፊ on navy) generated for Android — legacy, adaptive, and
+  Android 13 themed/monochrome — plus web icons and favicon.
+- Noto Sans Ethiopic bundled, so fidäl renders on web without depending on a
+  host font. Verified present in the built asset bundle, both weights.
 - `flutter analyze` clean; `flutter test` green (one shell smoke test).
 
 ## What's incomplete
@@ -25,11 +31,19 @@ Honest status of the prototype. Updated as work lands — no pretending unfinish
 
 ## How it was tested
 
-At this stage: only that the scaffold builds and boots.
+At this stage: only that the scaffold builds, boots, and renders correctly.
 
 - `flutter analyze` → no issues.
-- `flutter test` → passes (asserts the app shell renders; no logic under test yet).
-- Web build launched via `flutter run -d chrome`.
+- `flutter test` → passes (asserts the shell renders ፊደል; no logic under test yet).
+- `flutter build web --release` → builds; both font weights confirmed in the
+  output `FontManifest.json` and asset bundle.
+- Served the release build and screenshotted it in headless Chrome under both
+  `prefers-color-scheme` values: light renders white/ink, dark renders ink/light,
+  and ፊደል rasterises in the bundled font rather than tofu.
+- Adaptive icon checked by compositing the *generated* drawable over the plate
+  with the launcher's inset applied, then masking to circle and squircle. The
+  first attempt put the glyph at 27% of the canvas against a 66% safe zone —
+  a speck. Corrected to 54%; see the note in `tool/generate_icon.py`.
 
 No functional testing has happened because there is no functionality. Once the engine exists, testing follows spec §10: known letter → expected siblings across all four families and several vowel orders; non-Ge'ez input (Latin, digits, punctuation) → zero flags; empty input safe; and a boundary check that characters just outside a family's 7-order range are **not** flagged.
 

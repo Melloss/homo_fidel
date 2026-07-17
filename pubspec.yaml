@@ -28,11 +28,51 @@ dev_dependencies:
   # Fakes for repository/data-source contracts in unit tests.
   bloc_test: ^10.0.0
   mocktail: ^1.0.4
+  # Build-time only: stamps launcher icons from assets/icon/.
+  flutter_launcher_icons: ^0.14.4
 
 flutter:
   uses-material-design: true
+
+  # Bundled, not system-resolved. The default font has no Ethiopic glyphs, and
+  # web can't rely on the host having one — an app whose whole job is showing
+  # fidäl cannot risk tofu. Covers all 4 families x 7 orders. SIL OFL 1.1;
+  # licence ships in assets/fonts/OFL.txt.
+  fonts:
+    - family: NotoSansEthiopic
+      fonts:
+        - asset: assets/fonts/NotoSansEthiopic-Regular.ttf
+        - asset: assets/fonts/NotoSansEthiopic-Bold.ttf
+          weight: 700
+
+  # Shipped so the OFL travels with the font it covers; main.dart registers it
+  # into Flutter's LicenseRegistry, which surfaces it in the Licenses page.
+  assets:
+    - assets/fonts/OFL.txt
+
+  # assets/icon/ is deliberately NOT declared here — those are build-time
+  # sources for flutter_launcher_icons, not runtime assets. Declaring them
+  # would ship 1024px PNGs inside the app bundle for nothing.
 
   # Mode B (stretch goal) only. Declare once assets/word_freq.json exists —
   # a declared-but-missing asset fails the build, so it stays commented out.
   # assets:
   #   - assets/word_freq.json
+
+# Regenerate sources: python3 tool/generate_icon.py
+# Stamp platforms:    dart run flutter_launcher_icons
+flutter_launcher_icons:
+  image_path: "assets/icon/icon.png"
+  android: "ic_launcher"
+  # Adaptive icon = solid navy plate + gold ፊ foreground, so launcher masks
+  # (circle, squircle, teardrop) crop the plate and never clip the glyph.
+  adaptive_icon_background: "#14213D"
+  adaptive_icon_foreground: "assets/icon/icon_foreground.png"
+  # Android 13+ themed icons: the system tints this silhouette itself.
+  adaptive_icon_monochrome: "assets/icon/icon_monochrome.png"
+  remove_alpha_ios: true
+  web:
+    generate: true
+    image_path: "assets/icon/icon.png"
+    background_color: "#14213D"
+    theme_color: "#14213D"
