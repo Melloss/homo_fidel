@@ -12,11 +12,16 @@ import '../widgets/swap_sheet.dart';
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
 
-  /// Pre-filled example so the client can test in one tap (spec §6). Every
-  /// family appears at least once, in both directions where there are two
-  /// bases: ሰ/ሠ, ሀ/ሐ, ፀ/ጸ, አ/ዐ.
-  static const sampleText = 'ሰላም ለሀገራችን። ፀሐይ ስትወጣ አበበ በጸሎት ላይ ነበር። '
-      'የሠራተኛው ዐይን በተስፋ ተሞላ።';
+  /// Pre-filled examples so the app can be tested in one tap (spec §6);
+  /// repeated presses of Sample cycle through them. Each covers several
+  /// families, and the first covers all four in both directions where there
+  /// are two bases: ሰ/ሠ, ሀ/ሐ, ፀ/ጸ, አ/ዐ.
+  static const sampleTexts = [
+    'ሰላም ለሀገራችን። ፀሐይ ስትወጣ አበበ በጸሎት ላይ ነበር። የሠራተኛው ዐይን በተስፋ ተሞላ።',
+    'ሠላም! ኢትዮጵያ ሀገራችን ውብ ናት። ዓለም በሙሉ ሰላም ይሁን።',
+    'ጸሎት እና ምጽዋት መልካም ሥራዎች ናቸው። ሐኪሙ ሕመምተኛውን በጥንቃቄ አከመ።',
+    'ፀሐይ በምሥራቅ ትወጣለች። አባቴ ትናንት ወደ ሀገር ቤት ሄደ።',
+  ];
 
   @override
   State<HomePage> createState() => _HomePageState();
@@ -24,6 +29,13 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   final _controller = TextEditingController();
+  var _nextSample = 0;
+
+  void _fillSample() {
+    _controller.text =
+        HomePage.sampleTexts[_nextSample % HomePage.sampleTexts.length];
+    _nextSample++;
+  }
 
   @override
   void dispose() {
@@ -128,7 +140,7 @@ class _HomePageState extends State<HomePage> {
               flex: 2,
               child: OutlinedButton.icon(
                 style: _actionStyle,
-                onPressed: () => _controller.text = HomePage.sampleText,
+                onPressed: _fillSample,
                 icon: const Icon(Icons.article_outlined),
                 label: const Text('Sample'),
               ),

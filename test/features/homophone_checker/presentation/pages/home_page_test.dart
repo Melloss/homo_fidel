@@ -71,7 +71,18 @@ void main() {
     await tester.tap(find.text('Sample'));
     await tester.pump();
     final field = tester.widget<TextField>(find.byType(TextField));
-    expect(field.controller!.text, HomePage.sampleText);
+    expect(field.controller!.text, HomePage.sampleTexts.first);
+  });
+
+  testWidgets('repeated Sample presses cycle through all samples and wrap',
+      (tester) async {
+    await tester.pumpWidget(buildApp());
+    final field = tester.widget<TextField>(find.byType(TextField));
+    for (final expected in [...HomePage.sampleTexts, HomePage.sampleTexts[0]]) {
+      await tester.tap(find.text('Sample'));
+      await tester.pump();
+      expect(field.controller!.text, expected);
+    }
   });
 
   testWidgets('Check renders the highlighted result with a count', (tester) async {
