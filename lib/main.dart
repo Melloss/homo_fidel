@@ -1,8 +1,11 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show rootBundle;
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'core/theme/app_theme.dart';
+import 'features/homophone_checker/presentation/bloc/checker_bloc.dart';
+import 'features/homophone_checker/presentation/pages/home_page.dart';
 import 'injection_container.dart' as di;
 
 Future<void> main() async {
@@ -24,9 +27,7 @@ void _registerFontLicense() {
   });
 }
 
-/// App shell. The one screen (input, Check/Copy, highlighted result, swap
-/// sheet) lands in features/homophone_checker/presentation/pages/home_page.dart
-/// behind a BlocProvider — see spec §6.
+/// App shell around the one screen (spec §6).
 class HomofidelApp extends StatelessWidget {
   const HomofidelApp({super.key});
 
@@ -38,8 +39,9 @@ class HomofidelApp extends StatelessWidget {
       theme: AppTheme.light,
       darkTheme: AppTheme.dark,
       themeMode: ThemeMode.system,
-      home: const Scaffold(
-        body: Center(child: Text('ፊደል')),
+      home: BlocProvider(
+        create: (_) => di.sl<CheckerBloc>(),
+        child: const HomePage(),
       ),
     );
   }

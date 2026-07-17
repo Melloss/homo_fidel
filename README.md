@@ -10,7 +10,13 @@ Ordinary spell checkers miss this. They catch **non-words**, but a homophone sli
 
 ## Status
 
-Project scaffold. The app shell boots and the architecture is laid out; the detection engine and UI are not implemented yet. See [NOTES.md](NOTES.md) for an honest breakdown.
+**The central interaction works end-to-end (Mode A):** paste or type Amharic → **አረጋግጥ** (Check) → every homophone choice point highlighted → tap a letter → pick a same-sound sibling from the bottom sheet → the text is swapped and re-scanned → **ቅዳ** (Copy) puts the corrected text on the clipboard. A **ናሙና** button pre-fills a sample sentence covering all four families.
+
+The engine is pure Dart, fully unit-tested, and the whole flow is covered by bloc and widget tests; the release web build has been driven end-to-end in a real browser. Mode B (word-frequency "likely error" weighting) is deliberately not attempted — see [NOTES.md](NOTES.md) for the honest breakdown and screenshots in [docs/screenshots/](docs/screenshots/).
+
+| | | |
+|---|---|---|
+| ![Checked text with highlights](docs/screenshots/2-checked-highlights.png) | ![Swap sheet](docs/screenshots/3-swap-sheet.png) | ![After the swap](docs/screenshots/4-after-swap.png) |
 
 ## Requirements
 
@@ -34,8 +40,8 @@ flutter run -d android
 
 ```bash
 flutter test                                  # everything
-flutter test test/widget_test.dart            # one file
-flutter test --plain-name 'app shell boots'   # one test by name
+flutter test test/features/homophone_checker/ # engine + UI feature tests
+flutter test --plain-name 'app shell boots into the checker screen'
 ```
 
 ## Build

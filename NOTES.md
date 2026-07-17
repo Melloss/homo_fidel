@@ -24,6 +24,20 @@ Honest status of the prototype. Updated as work lands — no pretending unfinish
     fresh and the sibling legal before touching the string.
   - A purity test that fails if `package:flutter` ever leaks into the domain
     layer.
+- **The one screen (spec milestones 2–3), the central interaction working
+  end-to-end:** paste/type → አረጋግጥ (Check) → highlighted read-only result →
+  tap a letter → bottom sheet of same-sound siblings → tap to swap →
+  re-scan → አርም (Edit) round-trips the corrected text back into the field →
+  ቅዳ (Copy) puts it on the clipboard.
+  - `CheckerBloc` (edit mode ⇄ checked mode) wired through `get_it`.
+  - `HighlightedText` renders each flagged grapheme as its own tappable
+    `TextSpan` (recognizers owned and disposed properly).
+  - ናሙና sample button pre-fills a sentence covering all four families in
+    both directions (10 choice points).
+  - Choice points use the quiet wheat highlight (`AppColors.choicePoint`),
+    per the spec §14 noise mitigation; the strong gold stays reserved for
+    Mode B likely-errors.
+- Flow screenshots of the release web build in `docs/screenshots/`.
 - `flutter analyze` clean; `flutter test` green.
 
 ## What's incomplete
@@ -32,11 +46,18 @@ Honest status of the prototype. Updated as work lands — no pretending unfinish
 - [x] `scan()` — text → flagged choice points
 - [x] `siblings()` — same-sound alternatives via order arithmetic
 - [x] Engine unit tests
-- [ ] The one screen: input, Check, Copy
-- [ ] Highlighted `RichText` result with tappable letters
-- [ ] Swap bottom sheet + replace-and-rescan
-- [ ] Sample-text (አማርኛ) button
-- [ ] Mode B (word-frequency likely-error layer) — stretch goal, may not be attempted
+- [x] The one screen: input, Check, Copy
+- [x] Highlighted `RichText` result with tappable letters
+- [x] Swap bottom sheet + replace-and-rescan
+- [x] Sample-text (ናሙና) button
+- [ ] Mode B (word-frequency likely-error layer) — stretch goal, **not
+  attempted**: it needs a curated Amharic word-frequency list bundled as an
+  asset, and shipping an unvetted list would undercut the "assist, not
+  authority" framing. The `word_freq.json` slot and data-source stub remain.
+- [ ] Android build verified on a real device (web is the demo path; the APK
+  builds but has not been exercised by hand)
+- [ ] The clipboard Copy button has no automated test (needs a platform-channel
+  mock); verified only manually in the browser
 
 ## How it was tested
 
@@ -53,6 +74,19 @@ Engine, per spec §10 — all deterministic unit tests, no widget harness:
   character even in messy input.
 - Swap: replaces only the targeted occurrence, is reversible, and rejects
   stale flags and non-sibling replacements.
+
+UI — bloc tests plus full-flow widget tests over the real engine (no mocks):
+
+- `CheckerBloc`: check → flags, swap → re-scan (ሰላም → ሠላም stays a choice
+  point), swap ignored in edit mode, Edit returns to edit mode.
+- Widget flow: boot → sample fill → Check renders the count and highlights;
+  zero-flag text says "No choice points found"; tapping a flagged span's
+  recognizer opens the sheet with the right sibling; choosing it swaps the
+  text; Edit preserves the swapped text in the field.
+- Release web build (`flutter build web --release`) driven in headless Chrome
+  over the DevTools protocol: sample → Check showed all 10 highlights, tapping
+  ሰ opened the sheet, tapping ሠ swapped the first word to ሠላም and re-scanned.
+  Screenshots of each state are in `docs/screenshots/`.
 
 Scaffold-level checks from the previous milestone:
 
@@ -78,8 +112,17 @@ No functional testing has happened because there is no functionality. Once the e
 
 ## Open decisions
 
-- **Mode A only, or Mode A + attempt Mode B?** Spec §5 recommends shipping Mode A (choice-point highlighting) as the guaranteed deliverable and attempting Mode B only if time remains. Not yet confirmed.
+- **Mode A only, or Mode A + attempt Mode B?** This pass shipped **Mode A
+  only** — the guaranteed deliverable per spec §5. Mode B stays open as the
+  obvious next step and needs the client's call on a frequency corpus (see
+  "What's incomplete"). The architecture slot for it (data-source stub,
+  commented `word_freq.json` asset entry) is in place.
 
 ## What I'd try next
 
-Per spec §13, in order: engine + unit tests (prove the idea in pure Dart before any UI) → the one screen → tap-to-swap → polish, builds, screenshots → Mode B if time allows.
+- Mode B, if the client confirms it: bundle a small public Amharic frequency
+  list, generate word variants at the flagged positions, and surface the
+  strong-gold "likely error" weight that `AppColors.likelyError` already
+  reserves.
+- A manual UX pass of the APK on a physical Android device.
+- A short screen recording of highlight → tap → swap → copy for the delivery.
