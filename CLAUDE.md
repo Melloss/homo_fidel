@@ -2,13 +2,11 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-## Status: scaffold only — no functionality implemented
+## Status: Modes A and B implemented and verified
 
-The Flutter project is initialized (package `com.melloss.homofidel`, app name **HomoFidel**, Android + web) and the clean-architecture tree is laid out, but **every directory under `lib/features/` is empty except for `.gitkeep` markers**. No family tables, no `scan()`, no UI.
+The engine (family tables, `scan()`, siblings), the one-screen UI (highlight → tap → swap → copy), and Mode B (word-frequency likely-slip weighting over a bundled CC BY 4.0 news corpus) are all built, unit/widget-tested, and driven end-to-end in the release web build. Work landed on branches `feat/homophone-engine` → `feat/checker-ui` → `feat/mode-b`.
 
-`docs/Homofidel_Concept_Spec.pdf` is the source of truth for scope, algorithm, and deliverables — 6 pages, read it before starting. `NOTES.md` tracks honest status and deviations.
-
-The first substantive task is the engine: family tables + `scan()` + siblings, with unit tests, in pure Dart before any UI (spec milestone 1).
+`docs/Homofidel_Concept_Spec.pdf` is the source of truth for scope, algorithm, and deliverables — 6 pages, read it before starting. `NOTES.md` tracks honest status, Mode B's stated limitations, and deviations.
 
 Toolchain: Flutter 3.35.7 (stable), Dart 3.9.2, at `/snap/bin/flutter`.
 
@@ -85,9 +83,7 @@ So `base <= cp <= base + 6` is correct and `base + 7` would over-flag. (Curiosit
 This is a $20 Upwork fixed-price prototype trial. Scope tightness is the point; resist expanding it.
 
 - **Mode A — choice-point highlighting: the guaranteed deliverable.** Flags every character that *could* be a homophone slip, offers swaps on tap. Deterministic, instant, offline, zero data risk. This alone satisfies the agreed interaction.
-- **Mode B — likely-error correction: stretch goal only.** Checks word variants against a bundled offline frequency JSON to surface a *suggested* correction. Attempt only if time remains.
-
-**Open decision, to confirm before building: Mode A only, or Mode A + attempt Mode B?**
+- **Mode B — likely-error correction: shipped (client request, 2026-07-17).** Checks same-sound word variants against `assets/word_freq.json` and fires only on lopsided evidence (≥10 hits and 20× the typed count). Presents counts, not verdicts; degrades silently to Mode A if the asset fails. The corpus is *descriptive newsroom usage* — see NOTES.md before "fixing" its recommendations.
 
 Explicitly out of scope: full dictionary/grammar checker, one-click autocorrect, system-wide keyboard/IME, accounts, cloud sync, analytics, iOS/Play Store, polish pass.
 
@@ -163,8 +159,9 @@ lib/
 assets/
 ├── fonts/                            # Noto Sans Ethiopic (bundled) + OFL.txt
 ├── icon/                             # build-time icon sources (not bundled)
-└── word_freq.json                    # Mode B only (asset entry commented out
-                                      # in pubspec until the file exists)
+└── word_freq.json                    # Mode B frequency list (CC BY 4.0 news
+                                      # corpus; tool/build_word_freq.py)
 tool/generate_icon.py                 # regenerates assets/icon/
+tool/build_word_freq.py               # regenerates assets/word_freq.json
 test/features/homophone_checker/…     # mirrors lib/
 ```
