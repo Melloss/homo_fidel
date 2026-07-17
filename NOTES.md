@@ -25,10 +25,16 @@ Honest status of the prototype. Updated as work lands — no pretending unfinish
   - A purity test that fails if `package:flutter` ever leaks into the domain
     layer.
 - **The one screen (spec milestones 2–3), the central interaction working
-  end-to-end:** paste/type → አረጋግጥ (Check) → highlighted read-only result →
+  end-to-end:** paste/type → Check → highlighted read-only result →
   tap a letter → bottom sheet of same-sound siblings → tap to swap →
-  re-scan → አርም (Edit) round-trips the corrected text back into the field →
-  ቅዳ (Copy) puts it on the clipboard.
+  re-scan → Edit round-trips the corrected text back into the field →
+  Copy puts it on the clipboard. All UI text is English (client request,
+  2026-07-17) so the app is operable without reading Amharic; only the
+  content being checked is Ge'ez.
+- **Fix all** (client request, 2026-07-17): applies every Mode B suggestion
+  in one tap, then re-scans; disabled when nothing is likely wrong, because
+  Mode A choice points have no "right answer" to auto-apply. Bottom action
+  bars redesigned: equal-width rounded buttons, Fix all in the brand gold.
   - `CheckerBloc` (edit mode ⇄ checked mode) wired through `get_it`.
   - `HighlightedText` renders each flagged grapheme as its own tappable
     `TextSpan` (recognizers owned and disposed properly).
@@ -66,7 +72,8 @@ Honest status of the prototype. Updated as work lands — no pretending unfinish
 - [x] The one screen: input, Check, Copy
 - [x] Highlighted `RichText` result with tappable letters
 - [x] Swap bottom sheet + replace-and-rescan
-- [x] Sample-text (ናሙና) button
+- [x] Sample-text button
+- [x] Fix all (one-tap application of all Mode B suggestions)
 - [x] Mode B (word-frequency likely-error layer)
 - [ ] Android build verified on a real device (web is the demo path; the APK
   builds but has not been exercised by hand)
@@ -131,6 +138,10 @@ except the swappable fake corpus):
 - Widget flow, Mode B: a dominated spelling is counted in the summary line
   ("1 likely slip in gold"), painted with `AppColors.likelyError`, starred in
   the sheet with the evidence line; ordinary choice points get neither.
+- Fix all: disabled when there are no suggestions; with two seeded slips it
+  rewrites both words in one tap, drops the gold from the summary, and shows
+  the "Fixed 2 likely slips" snackbar. Bloc-level: applying with no
+  suggestions emits nothing; applying re-scans (ሠላም ሐገር ነው → ሰላም ሀገር ነው).
 - Release web build (`flutter build web --release`) driven in headless Chrome
   over the DevTools protocol: sample → Check showed all 10 highlights with
   **4 likely slips in gold** (ፀሐይ, በጸሎት, የሠራተኛው, ዐይን — all four families,

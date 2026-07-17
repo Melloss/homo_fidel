@@ -26,6 +26,7 @@ class CheckerBloc extends Bloc<CheckerEvent, CheckerState> {
   }) : super(const CheckerEditing()) {
     on<TextChecked>(_onTextChecked);
     on<SiblingSwapped>(_onSiblingSwapped);
+    on<AllSuggestionsApplied>(_onAllSuggestionsApplied);
     on<EditingResumed>(_onEditingResumed);
   }
 
@@ -53,6 +54,25 @@ class CheckerBloc extends Bloc<CheckerEvent, CheckerState> {
     // (siblings are same-length), but a fresh scan keeps one source of truth —
     // and a swap can legitimately dissolve or create a Mode B suggestion.
     emit(_check(newText));
+  }
+
+  void _onAllSuggestionsApplied(
+    AllSuggestionsApplied event,
+    Emitter<CheckerState> emit,
+  ) {
+    final current = state;
+    if (current is! CheckerResult || current.suggestions.isEmpty) return;
+    // Every suggestion replaces a word with a same-length variant, so earlier
+    // replacements never shift later indices. The substring guard makes a
+    // stale suggestion a no-op instead of a corruption.
+    var text = current.text;
+    for (final s in current.suggestions) {
+      final end = s.index + s.typed.length;
+      if (text.substring(s.index, end) == s.typed) {
+        text = text.replaceRange(s.index, end, s.suggested);
+      }
+    }
+    emit(_check(text));
   }
 
   void _onEditingResumed(EditingResumed event, Emitter<CheckerState> emit) {

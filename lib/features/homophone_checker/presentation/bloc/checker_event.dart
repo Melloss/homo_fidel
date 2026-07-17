@@ -28,6 +28,11 @@ final class SiblingSwapped extends CheckerEvent {
   List<Object?> get props => [letter, sibling];
 }
 
+/// Fix all pressed: apply every Mode B suggestion in one go.
+final class AllSuggestionsApplied extends CheckerEvent {
+  const AllSuggestionsApplied();
+}
+
 /// Edit pressed on the result view — back to the TextField.
 final class EditingResumed extends CheckerEvent {
   const EditingResumed();

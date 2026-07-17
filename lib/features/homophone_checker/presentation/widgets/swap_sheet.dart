@@ -50,13 +50,13 @@ class SwapSheet extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Text(
-              'ተመሳሳይ ድምፅ ያላቸው ፊደላት',
+              'Same-sound letters',
               style: theme.textTheme.titleMedium,
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 4),
             Text(
-              '${letter.character} — the ${letter.family.sound} family',
+              '${letter.character} — the ${letter.family.sound} family · tap a letter to use it',
               style: theme.textTheme.bodyMedium
                   ?.copyWith(color: theme.colorScheme.onSurfaceVariant),
               textAlign: TextAlign.center,
@@ -80,7 +80,7 @@ class SwapSheet extends StatelessWidget {
             if (s != null) ...[
               const SizedBox(height: 16),
               Text(
-                'በዜና ኮርፐስ፦  ${s.typed} ×${s.typedCount}   ·   '
+                'News corpus:  ${s.typed} ×${s.typedCount}   ·   '
                 '${s.suggested} ×${s.suggestedCount}',
                 style: theme.textTheme.bodySmall
                     ?.copyWith(color: theme.colorScheme.onSurfaceVariant),

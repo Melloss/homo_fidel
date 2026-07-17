@@ -8,6 +8,6 @@ void main() {
   testWidgets('app shell boots into the checker screen', (tester) async {
     await tester.pumpWidget(const HomofidelApp());
     expect(find.text('Homofidäl'), findsOneWidget);
-    expect(find.text('አረጋግጥ'), findsOneWidget);
+    expect(find.text('Check'), findsOneWidget);
   });
 }
