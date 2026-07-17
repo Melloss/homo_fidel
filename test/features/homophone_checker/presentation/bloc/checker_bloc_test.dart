@@ -118,6 +118,34 @@ void main() {
   );
 
   blocTest<CheckerBloc, CheckerState>(
+    'Fix all applies every suggestion at once and re-scans',
+    build: () => buildBloc(
+      corpus: {'ሰላም': 5490, 'ሠላም': 50, 'ሀገር': 5345, 'ሐገር': 2},
+    ),
+    act: (bloc) {
+      bloc.add(const TextChecked('ሠላም ሐገር ነው'));
+      bloc.add(const AllSuggestionsApplied());
+    },
+    verify: (bloc) {
+      final state = bloc.state as CheckerResult;
+      expect(state.text, 'ሰላም ሀገር ነው');
+      expect(state.suggestions, isEmpty);
+      expect(state.flags, hasLength(2)); // still ordinary choice points
+    },
+  );
+
+  blocTest<CheckerBloc, CheckerState>(
+    'Fix all with no suggestions emits nothing',
+    build: () => buildBloc(corpus: {'ሰላም': 5490}),
+    act: (bloc) {
+      bloc.add(const TextChecked('ሰላም'));
+      bloc.add(const AllSuggestionsApplied());
+    },
+    skip: 1, // the TextChecked emission
+    expect: () => const <CheckerState>[],
+  );
+
+  blocTest<CheckerBloc, CheckerState>(
     'without the frequency list the result simply has no suggestions',
     build: buildBloc,
     act: (bloc) => bloc.add(const TextChecked('ሠላም')),

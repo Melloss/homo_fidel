@@ -10,16 +10,16 @@ Ordinary spell checkers miss this. They catch **non-words**, but a homophone sli
 
 ## Status
 
-**The central interaction works end-to-end (Mode A):** paste or type Amharic → **አረጋግጥ** (Check) → every homophone choice point highlighted → tap a letter → pick a same-sound sibling from the bottom sheet → the text is swapped and re-scanned → **ቅዳ** (Copy) puts the corrected text on the clipboard. A **ናሙና** button pre-fills a sample sentence covering all four families.
+**The central interaction works end-to-end (Mode A):** paste or type Amharic → **Check** → every homophone choice point highlighted → tap a letter → pick a same-sound sibling from the bottom sheet → the text is swapped and re-scanned → **Copy** puts the corrected text on the clipboard. A **Sample** button pre-fills a sentence covering all four families. The UI is in English throughout, so no Amharic is needed to operate it.
 
-**Mode B is in too:** words whose same-sound variant overwhelmingly dominates a bundled news-corpus frequency list get the strong gold *likely slip* highlight, and the swap sheet stars the corpus's pick alongside the raw counts (e.g. `በጸሎት ×0 · በፀሎት ×102`). Evidence, not verdicts — and if the frequency asset ever fails to load, the app silently runs as Mode A.
+**Mode B is in too:** words whose same-sound variant overwhelmingly dominates a bundled news-corpus frequency list get the strong gold *likely slip* highlight, the swap sheet stars the corpus's pick alongside the raw counts (e.g. `በጸሎት ×0 · በፀሎት ×102`), and a **Fix all** button applies every suggestion in one tap. Evidence, not verdicts — and if the frequency asset ever fails to load, the app silently runs as Mode A (Fix all simply stays disabled).
 
 The engine is pure Dart, fully unit-tested, and the whole flow is covered by bloc and widget tests; the release web build has been driven end-to-end in a real browser. See [NOTES.md](NOTES.md) for the honest breakdown (including Mode B's stated limitations) and screenshots in [docs/screenshots/](docs/screenshots/).
 
 | | | |
 |---|---|---|
-| ![Checked text with highlights](docs/screenshots/2-checked-highlights.png) | ![Swap sheet](docs/screenshots/3-swap-sheet.png) | ![After the swap](docs/screenshots/4-after-swap.png) |
-| ![Mode B likely slips in gold](docs/screenshots/5-modeb-likely-errors.png) | ![Evidence in the swap sheet](docs/screenshots/6-modeb-evidence-sheet.png) | ![After applying the suggestion](docs/screenshots/7-modeb-after-swap.png) |
+| ![Checked text — gold marks likely slips](docs/screenshots/2-checked-highlights.png) | ![Same-sound letters sheet](docs/screenshots/3-swap-sheet.png) | ![Corpus evidence with the starred pick](docs/screenshots/5-modeb-evidence-sheet.png) |
+| ![After one swap](docs/screenshots/4-after-swap.png) | ![After Fix all](docs/screenshots/6-modeb-after-fix-all.png) | ![Edit mode](docs/screenshots/1-edit-mode.png) |
 
 ## Requirements
 

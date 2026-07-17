@@ -62,13 +62,13 @@ void main() {
   testWidgets('boots in edit mode with input, sample, and Check', (tester) async {
     await tester.pumpWidget(buildApp());
     expect(find.byType(TextField), findsOneWidget);
-    expect(find.text('ናሙና'), findsOneWidget);
-    expect(find.text('አረጋግጥ'), findsOneWidget);
+    expect(find.text('Sample'), findsOneWidget);
+    expect(find.text('Check'), findsOneWidget);
   });
 
   testWidgets('sample button pre-fills the example text', (tester) async {
     await tester.pumpWidget(buildApp());
-    await tester.tap(find.text('ናሙና'));
+    await tester.tap(find.text('Sample'));
     await tester.pump();
     final field = tester.widget<TextField>(find.byType(TextField));
     expect(field.controller!.text, HomePage.sampleText);
@@ -77,7 +77,7 @@ void main() {
   testWidgets('Check renders the highlighted result with a count', (tester) async {
     await tester.pumpWidget(buildApp());
     await tester.enterText(find.byType(TextField), 'ሰላም ፀሐይ');
-    await tester.tap(find.text('አረጋግጥ'));
+    await tester.tap(find.text('Check'));
     await tester.pumpAndSettle();
 
     expect(find.byType(HighlightedText), findsOneWidget);
@@ -90,7 +90,7 @@ void main() {
   testWidgets('text without choice points says so honestly', (tester) async {
     await tester.pumpWidget(buildApp());
     await tester.enterText(find.byType(TextField), 'መልካም ቀን');
-    await tester.tap(find.text('አረጋግጥ'));
+    await tester.tap(find.text('Check'));
     await tester.pumpAndSettle();
 
     expect(find.text('No choice points found.'), findsOneWidget);
@@ -100,7 +100,7 @@ void main() {
       (tester) async {
     await tester.pumpWidget(buildApp());
     await tester.enterText(find.byType(TextField), 'ሰላም');
-    await tester.tap(find.text('አረጋግጥ'));
+    await tester.tap(find.text('Check'));
     await tester.pumpAndSettle();
 
     tapFlaggedLetter(tester);
@@ -114,7 +114,7 @@ void main() {
       (tester) async {
     await tester.pumpWidget(buildApp());
     await tester.enterText(find.byType(TextField), 'ሰላም');
-    await tester.tap(find.text('አረጋግጥ'));
+    await tester.tap(find.text('Check'));
     await tester.pumpAndSettle();
 
     tapFlaggedLetter(tester);
@@ -139,7 +139,7 @@ void main() {
         (tester) async {
       await tester.pumpWidget(buildApp(corpus: corpus));
       await tester.enterText(find.byType(TextField), 'ሠላም');
-      await tester.tap(find.text('አረጋግጥ'));
+      await tester.tap(find.text('Check'));
       await tester.pumpAndSettle();
 
       expect(
@@ -165,7 +165,7 @@ void main() {
         (tester) async {
       await tester.pumpWidget(buildApp(corpus: corpus));
       await tester.enterText(find.byType(TextField), 'ሠላም');
-      await tester.tap(find.text('አረጋግጥ'));
+      await tester.tap(find.text('Check'));
       await tester.pumpAndSettle();
 
       tapFlaggedLetter(tester);
@@ -180,7 +180,7 @@ void main() {
         (tester) async {
       await tester.pumpWidget(buildApp(corpus: corpus));
       await tester.enterText(find.byType(TextField), 'ሰላም');
-      await tester.tap(find.text('አረጋግጥ'));
+      await tester.tap(find.text('Check'));
       await tester.pumpAndSettle();
 
       tapFlaggedLetter(tester);
@@ -188,7 +188,54 @@ void main() {
 
       expect(find.byType(SwapSheet), findsOneWidget);
       expect(find.byIcon(Icons.star), findsNothing);
-      expect(find.textContaining('ኮርፐስ'), findsNothing);
+      expect(find.textContaining('News corpus'), findsNothing);
+    });
+
+    testWidgets('Fix all is disabled when nothing is likely wrong',
+        (tester) async {
+      await tester.pumpWidget(buildApp(corpus: corpus));
+      await tester.enterText(find.byType(TextField), 'ሰላም');
+      await tester.tap(find.text('Check'));
+      await tester.pumpAndSettle();
+
+      // FilledButton.tonalIcon builds a private FilledButton subclass, so
+      // match by predicate rather than exact type.
+      final button = tester.widget<FilledButton>(
+        find.ancestor(
+          of: find.text('Fix all'),
+          matching: find.byWidgetPredicate((w) => w is FilledButton),
+        ),
+      );
+      expect(button.onPressed, isNull);
+    });
+
+    testWidgets('Fix all applies every suggestion in one tap', (tester) async {
+      await tester.pumpWidget(buildApp(corpus: {
+        ...corpus,
+        'ሀገር': 5345,
+        'ሐገር': 2,
+      }));
+      await tester.enterText(find.byType(TextField), 'ሠላም ሐገር');
+      await tester.tap(find.text('Check'));
+      await tester.pumpAndSettle();
+      expect(find.textContaining('2 likely slips'), findsOneWidget);
+
+      await tester.tap(find.text('Fix all'));
+      await tester.pumpAndSettle();
+
+      final richText = tester.widget<Text>(
+        find.descendant(
+          of: find.byType(HighlightedText),
+          matching: find.byType(Text),
+        ),
+      );
+      expect(richText.textSpan!.toPlainText(), 'ሰላም ሀገር');
+      // Summary drops the gold segment; the snackbar reports the fix count.
+      expect(
+        find.text('2 choice points — tap a highlighted letter to swap it'),
+        findsOneWidget,
+      );
+      expect(find.text('Fixed 2 likely slips'), findsOneWidget);
     });
   });
 
@@ -196,14 +243,14 @@ void main() {
       (tester) async {
     await tester.pumpWidget(buildApp());
     await tester.enterText(find.byType(TextField), 'ሰላም');
-    await tester.tap(find.text('አረጋግጥ'));
+    await tester.tap(find.text('Check'));
     await tester.pumpAndSettle();
     tapFlaggedLetter(tester);
     await tester.pumpAndSettle();
     await tester.tap(find.text('ሠ'));
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('አርም'));
+    await tester.tap(find.text('Edit'));
     await tester.pumpAndSettle();
 
     final field = tester.widget<TextField>(find.byType(TextField));

@@ -48,10 +48,36 @@ class _HomePageState extends State<HomePage> {
   Future<void> _copy(String text) async {
     await Clipboard.setData(ClipboardData(text: text));
     if (!mounted) return;
+    _toast('Copied to clipboard');
+  }
+
+  void _fixAll(CheckerResult state) {
+    final count = state.suggestions.length;
+    context.read<CheckerBloc>().add(const AllSuggestionsApplied());
+    _toast('Fixed $count likely ${count == 1 ? 'slip' : 'slips'}');
+  }
+
+  void _toast(String message) {
     ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
-      ..showSnackBar(const SnackBar(content: Text('ተቀድቷል — copied')));
+      ..showSnackBar(SnackBar(
+        content: Text(message),
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      ));
   }
+
+  /// One consistent shape for every bottom-bar action: comfortable height,
+  /// soft corners, readable label.
+  static final ButtonStyle _actionStyle = ButtonStyle(
+    minimumSize: const WidgetStatePropertyAll(Size.fromHeight(54)),
+    shape: WidgetStatePropertyAll(
+      RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+    ),
+    textStyle: const WidgetStatePropertyAll(
+      TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
+    ),
+  );
 
   @override
   Widget build(BuildContext context) {
@@ -87,27 +113,37 @@ class _HomePageState extends State<HomePage> {
             expands: true,
             textAlignVertical: TextAlignVertical.top,
             style: const TextStyle(fontSize: 20, height: 1.8),
-            decoration: const InputDecoration(
-              border: OutlineInputBorder(),
-              hintText: 'የአማርኛ ጽሑፍ እዚህ ይለጥፉ ወይም ይጻፉ…',
+            decoration: InputDecoration(
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
+              hintText: 'Paste or type Amharic text here…',
             ),
           ),
         ),
         const SizedBox(height: 12),
         Row(
           children: [
-            OutlinedButton.icon(
-              onPressed: () => _controller.text = HomePage.sampleText,
-              icon: const Icon(Icons.article_outlined),
-              label: const Text('ናሙና'),
+            Expanded(
+              flex: 2,
+              child: OutlinedButton.icon(
+                style: _actionStyle,
+                onPressed: () => _controller.text = HomePage.sampleText,
+                icon: const Icon(Icons.article_outlined),
+                label: const Text('Sample'),
+              ),
             ),
-            const Spacer(),
-            FilledButton.icon(
-              onPressed: () => context
-                  .read<CheckerBloc>()
-                  .add(TextChecked(_controller.text)),
-              icon: const Icon(Icons.search),
-              label: const Text('አረጋግጥ'),
+            const SizedBox(width: 12),
+            Expanded(
+              flex: 3,
+              child: FilledButton.icon(
+                style: _actionStyle,
+                onPressed: () => context
+                    .read<CheckerBloc>()
+                    .add(TextChecked(_controller.text)),
+                icon: const Icon(Icons.spellcheck),
+                label: const Text('Check'),
+              ),
             ),
           ],
         ),
@@ -150,17 +186,35 @@ class _HomePageState extends State<HomePage> {
         const SizedBox(height: 12),
         Row(
           children: [
-            OutlinedButton.icon(
-              onPressed: () =>
-                  context.read<CheckerBloc>().add(const EditingResumed()),
-              icon: const Icon(Icons.edit_outlined),
-              label: const Text('አርም'),
+            Expanded(
+              child: OutlinedButton.icon(
+                style: _actionStyle,
+                onPressed: () =>
+                    context.read<CheckerBloc>().add(const EditingResumed()),
+                icon: const Icon(Icons.edit_outlined),
+                label: const Text('Edit'),
+              ),
             ),
-            const Spacer(),
-            FilledButton.icon(
-              onPressed: () => _copy(state.text),
-              icon: const Icon(Icons.copy),
-              label: const Text('ቅዳ'),
+            const SizedBox(width: 12),
+            Expanded(
+              child: FilledButton.tonalIcon(
+                style: _actionStyle,
+                // Only enabled when the corpus actually recommends something;
+                // Mode A choice points have no "right answer" to auto-apply.
+                onPressed:
+                    state.suggestions.isEmpty ? null : () => _fixAll(state),
+                icon: const Icon(Icons.auto_fix_high),
+                label: const Text('Fix all'),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: FilledButton.icon(
+                style: _actionStyle,
+                onPressed: () => _copy(state.text),
+                icon: const Icon(Icons.copy),
+                label: const Text('Copy'),
+              ),
             ),
           ],
         ),
